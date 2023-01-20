@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum VehicleStateEnumType {
+  inside
+  outside
+}
+
+enum VehicleEnumType {
+  official
+  nonresidents
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Vehicle {
+  id           String                @id @default(uuid())
+  plate_number String                
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+  role         VehicleEnumType?      @default(nonresidents)
+  state        VehicleStateEnumType? @default(inside)
+  InOutLogs    InOutLogs[]
+  amountParking Float
+}
+
+model InOutLogs {
+  id       String  @id @default(uuid())
+  vehicle  Vehicle @relation(fields: [vehiceId], references: [id])
+  vehiceId String
+  entryTime DateTime @default(now())
+  departureTime DateTime 
+}
