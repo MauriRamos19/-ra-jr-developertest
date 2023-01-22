@@ -1,19 +1,25 @@
 import { PrismaClient } from '@prisma/client'
-
+import { genSalt, hash } from 'bcrypt'
 const prisma = new PrismaClient()
 
-const main = async() => {
+async function main() {
+  const salt = await genSalt(10)
   await prisma.user.upsert({
     where: { name: 'admin' },
     update: {},
     create: {
       name: 'admin',
-      password: 'adminpass',
+      password: await hash('adminpass', salt),
     },
   })
 
-  const allUsers = await prisma.user.findMany()
-  console.dir(allUsers, { depth: null })
+  await prisma.vehicle.upsert({
+    where: { plate_number: 'asd 123' },
+    update: {},
+    create: {
+      plate_number: 'asd 123',
+    },
+  })
 }
 
 main()
