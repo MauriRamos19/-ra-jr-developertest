@@ -8,7 +8,7 @@ router.route('/vehicle/register-entry').patch(vehiclesController.entryCase)
 router.route('/vehicle/register-exit').patch(vehiclesController.exitCase)
 
 router.get('/vehicle/all', vehiclesController.getAllVehicles)
-router.post('/vehicle', vehiclesController.addVehicle)
+router.put('/vehicle', vehiclesController.addVehicle)
 
 router.route('/vehicle/:id')
   .put(vehiclesController.editVehicle)

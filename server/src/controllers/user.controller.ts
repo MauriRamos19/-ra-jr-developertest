@@ -2,11 +2,10 @@ import { Request, Response } from 'express'
 import prisma from '../lib/prisma'
 import { comparePasswords, generateToken } from '../modules/auth'
 
-
 const login = async (req: Request, res: Response) => {
   const { name, password } = req.body
-  
-  if(!req.body.name && !req.body.password) {
+
+  if (!req.body.name && !req.body.password) {
     return res.status(401).send({ msg: 'Username and password are required' })
   }
 
@@ -16,7 +15,12 @@ const login = async (req: Request, res: Response) => {
         name,
       },
     })
+     
+    if(!user){
+        return res.status(400).send({ msg: 'Invalid username' })
+    }
 
+    console.log(user)
     if (
       !(await comparePasswords(
         password,
@@ -27,10 +31,10 @@ const login = async (req: Request, res: Response) => {
 
     const token = generateToken(user)
 
-    res.status(200).send({token})
+    res.status(200).send({ token })
   } catch (error) {
-    res.end()
+    res.status(400).end()
   }
 }
 
-export default login;
+export default login

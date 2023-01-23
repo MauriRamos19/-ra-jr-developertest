@@ -141,6 +141,31 @@ const getAllVehicles = async (req: Request, res: Response) => {
 const addVehicle = async (req: Request, res: Response) => {
   const { plate_number } = req.body
   try {
+
+    const vehicle = await prisma.vehicle.findUnique({
+      where: {
+        plate_number
+      }
+    })
+
+    if(vehicle) {
+
+      if(vehicle.type === 'nonresidents') {
+        await prisma.vehicle.update({
+          where: {
+            plate_number,
+          },
+          data: {
+            type: 'official'
+          }
+        })
+
+        return res.status(200).send({ msg: 'Vehicle updated successfully' })
+      }
+
+      return res.status(400).send({ msg: 'Vehicle already exits' })
+    }
+    
     await prisma.vehicle.create({
       data: {
         plate_number,
@@ -150,7 +175,7 @@ const addVehicle = async (req: Request, res: Response) => {
 
     return res.send({ msg: 'Vehicle added successfully' })
   } catch (error) {
-    res.status(400).send({ msg: error })
+    return res.status(400).send({ msg: error })
   }
 }
 
@@ -169,7 +194,7 @@ const editVehicle = async (req: Request, res: Response) => {
 
     return res.send({ msg: 'Vehicle updated successfully' })
   } catch (error) {
-    res.status(400).send({ msg: error })
+    return res.status(400).send({ msg: error })
   }
 }
 
@@ -184,7 +209,7 @@ const deleteVehicle = async (req: Request, res: Response) => {
 
     return res.send({ msg: 'Vehicle deleted successfully' })
   } catch (error) {
-    res.status(400).send({ msg: error })
+    return res.status(400).send({ msg: error })
   }
 }
 

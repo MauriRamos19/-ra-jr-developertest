@@ -23,15 +23,15 @@ model Vehicle {
   amountParking Float?                @default(0)
   state         VehicleStateEnumType? @default(inside)
   type          VehicleEnumType?      @default(nonresidents)
-  InOutLogs     InOutLogs[]           
+  InOutLogs     InOutLogs[]
 }
 
 model InOutLogs {
   id        String    @id @default(uuid())
-  entryTime DateTime  @default(now())
-  exitTime  DateTime? 
-  vehicle   Vehicle   @relation(fields: [vehiceId], references: [id])
   vehiceId  String
+  entryTime DateTime  @default(now())
+  exitTime  DateTime?
+  vehicle   Vehicle   @relation(fields: [vehiceId], references: [id])
 }
 
 enum VehicleStateEnumType {
