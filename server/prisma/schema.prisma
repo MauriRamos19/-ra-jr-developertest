@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Vehicle {
+  id            String                @id @default(uuid())
+  plate_number  String                @unique
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  amountParking Float?                @default(0)
+  state         VehicleStateEnumType? @default(inside)
+  type          VehicleEnumType?      @default(nonresidents)
+  InOutLogs     InOutLogs[]
+}
+
+model InOutLogs {
+  id        String    @id @default(uuid())
+  vehiceId  String
+  entryTime DateTime  @default(now())
+  exitTime  DateTime?
+  vehicle   Vehicle   @relation(fields: [vehiceId], references: [id])
+}
+
+enum VehicleStateEnumType {
+  inside
+  outside
+}
+
+enum VehicleEnumType {
+  official
+  nonresidents
+}
