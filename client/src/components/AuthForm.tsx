@@ -6,7 +6,9 @@ import {
   FormHelperText,
   Input,
   Button,
-  Image
+  Image,
+  Text,
+  Spinner
 } from '@chakra-ui/react';
 
 import {
@@ -22,10 +24,12 @@ const AuthForm = () => {
     name: '',
     password: ''
   })
+  const [loading, setLoading] = React.useState(false);
  
 
   const [cookies, setCookie, removeCookie] = useCookies(['token']);
   const navigate = useNavigate();
+  
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUser( prev =>
@@ -48,14 +52,18 @@ const AuthForm = () => {
   const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     
-    const response = await fetch('http://localhost:8888/login', {
-      method: 'POST',
-      credentials: 'omit',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(user),
-    }) as any
+    setLoading(true)
+    const response = (await fetch(
+      `${import.meta.env.VITE_REACT_API_URI}login`,
+      {
+        method: 'POST',
+        credentials: 'omit',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(user),
+      }
+    )) as any;
 
     const { token } = await response.json()
 
@@ -66,6 +74,7 @@ const AuthForm = () => {
     });
 
     if(cookies.token) {
+      setLoading(false)
         navigate('/main');
     }
    
@@ -98,7 +107,6 @@ const AuthForm = () => {
         width='45%'
         boxShadow='lg'
       >
-
         <form onSubmit={(e) => handleSubmit(e)}>
           <FormControl isInvalid={isErrorName}>
             <FormLabel>Username</FormLabel>
@@ -135,9 +143,11 @@ const AuthForm = () => {
             )}
           </FormControl>
           <Button
+          disabled={loading}
             type='submit'
             marginTop='2rem'
             width='100%'
+            color='white'
             bg='linear-gradient(90deg, #EE4423 31%, #F27121 73%);'
             padding='25px'
             sx={{
@@ -146,7 +156,8 @@ const AuthForm = () => {
               },
             }}
           >
-            Sign In
+            {loading && <Spinner />}
+            {loading === false && <Text>Sign In</Text>}
           </Button>
         </form>
       </Box>
