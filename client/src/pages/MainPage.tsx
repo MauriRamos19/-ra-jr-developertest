@@ -7,16 +7,18 @@ import {
   Grid,
   GridItem,
   Text,
-  Button
+  Button,
+  useToast
 } from '@chakra-ui/react';
 import { useCookies } from 'react-cookie';
 import { Navigate } from 'react-router';
 import VehicleManagement from '../components/VehicleManagement';
 import useSWRMutation from 'swr/mutation';
+import EntryExitRecords from '../components/EntryExitRecords';
 
 
 async function sendRequest(url:any, { arg }: any) {
-  return fetch(`http://localhost:8888/${url}`, {
+  return fetch(`${import.meta.env.VITE_REACT_API_URI}${url}`, {
     method: 'PATCH',
     headers: {
       Authorization: `Bearer ${arg.token}`,
@@ -25,17 +27,19 @@ async function sendRequest(url:any, { arg }: any) {
     body: JSON.stringify(arg.data),
   }).then((res) => res.json());
 }
+
 const MainPage = () => {
   const [licensePlateEntry, setLincensePlateEntry] = React.useState('');
   const [licensePlateExit, setLincensePlateExit] = React.useState('');
   const [cookies] = useCookies(['token']);
   const [changeTag, setChangeTag] = React.useState(false);
+  const toast = useToast();
 
-  const { trigger: triggerEntry } = useSWRMutation(
+  const { trigger: triggerEntry, isMutating: isMutatingEntry } = useSWRMutation(
     'api/vehicle/register-entry',
     sendRequest
   );
-  const { trigger: triggerExit } = useSWRMutation('api/vehicle/register-exit',sendRequest);
+  const { trigger: triggerExit, isMutating: isMutatingExit } = useSWRMutation('api/vehicle/register-exit',sendRequest);
 
   return (
     <>
@@ -51,6 +55,7 @@ const MainPage = () => {
           fontFamily='heading'
           fontStyle='unset'
           fontWeight='bold'
+          bg='#EDF2F7'
         >
           <Flex
             flexDirection='column'
@@ -63,6 +68,7 @@ const MainPage = () => {
                 disabled={licensePlateExit === '' ? false : true}
                 paddingY='20px'
                 borderColor='gray'
+                bg='white'
                 type='text'
                 name='licencePlate'
                 value={licensePlateEntry}
@@ -72,7 +78,7 @@ const MainPage = () => {
                 }}
               />
               <Button
-                disabled={licensePlateExit === '' ? false : true}
+                disabled={isMutatingEntry}
                 bg='linear-gradient(90deg, #EE4423 31%, #F27121 73%);'
                 paddingY='15px'
                 color='white'
@@ -86,9 +92,27 @@ const MainPage = () => {
                   await triggerEntry({
                     data: { plate_number: licensePlateEntry },
                     token: cookies.token,
+                  }).then((data) => {
+                    setLincensePlateEntry('');
+                    if (data?.ok) {
+                      toast({
+                        title: data?.msg,
+                        description: 'Vecicle state updated or created',
+                        status: 'success',
+                        position: 'top',
+                        duration: 9000,
+                        isClosable: true,
+                      });
+                    } else {
+                      toast({
+                        title: data?.msg,
+                        status: 'error',
+                        position: 'top',
+                        duration: 9000,
+                        isClosable: true,
+                      });
+                    }
                   });
-                  setLincensePlateEntry('');
-                  alert('Vehicle state updated');
                 }}
               >
                 Register Entry
@@ -98,6 +122,7 @@ const MainPage = () => {
               <Input
                 disabled={licensePlateEntry === '' ? false : true}
                 borderColor='gray'
+                bg='white'
                 paddingY='20px'
                 type='text'
                 name='licencePlateExit'
@@ -108,6 +133,7 @@ const MainPage = () => {
                 }}
               />
               <Button
+                disabled={isMutatingExit}
                 bg='linear-gradient(90deg, #EE4423 31%, #F27121 73%);'
                 paddingY='15px'
                 color='white'
@@ -121,9 +147,27 @@ const MainPage = () => {
                   await triggerExit({
                     data: { plate_number: licensePlateExit },
                     token: cookies.token,
+                  }).then((data) => {
+                    setLincensePlateExit('');
+                    if (data?.ok) {
+                      toast({
+                        title: data?.msg,
+                        description: 'Vecicle state updated',
+                        status: 'success',
+                        position: 'top',
+                        duration: 9000,
+                        isClosable: true,
+                      });
+                    } else {
+                      toast({
+                        title: data?.msg,
+                        status: 'error',
+                        position: 'top',
+                        duration: 9000,
+                        isClosable: true,
+                      });
+                    }
                   });
-                  setLincensePlateExit('');
-                  alert('Vehicle state updated');
                 }}
               >
                 Register Exit
@@ -172,6 +216,7 @@ const MainPage = () => {
             </GridItem>
             <GridItem colSpan={2} bg='#F27121'>
               {changeTag === false && <VehicleManagement />}
+              {changeTag === true && <EntryExitRecords />}
             </GridItem>
           </Grid>
         </Box>

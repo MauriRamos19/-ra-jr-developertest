@@ -1,46 +1,50 @@
 import useSWR, { useSWRConfig } from 'swr';
-import fetcher from './fetcher';
+import useSWRMutation from 'swr/mutation';
+import {fetcher} from './fetcher';
 
 
 
 export const useVehicles = (token: string) => {
-  const { data, error } = useSWR(['api/vehicle/all', token], ([url, token]) =>
-    fetcher(url, undefined, token)
+  const { data, error, mutate } = useSWR(['api/vehicle/all', {method: 'GET', token}],
+    ([url, argv]) => fetcher(url,argv)
+  );
+
+  
+  return {
+    vehicles: (data?.vehicles as any) || [],
+    isLoading: !data && !error,
+    isError: error, 
+    mutate
+  };
+};
+
+export const useRecords = (token: string) => {
+  const { data, error, mutate } = useSWR(
+    ['api/vehicles/logs', { method: 'GET', token }],
+    ([url, argv]) => fetcher(url, argv)
   );
 
 
   return {
-    vehicles: (data?.vehicles as any) || [],
+    logs: (data?.logs as any) || [],
     isLoading: !data && !error,
     isError: error,
+    mutate,
   };
 };
 
-// export const useRegisterEntry= (sendData: any, token: string) => {
-//   const { mutate } = useSWRConfig();
+export const useCRUDVehicle = (url: string) => {
 
-//   return {
-//     data: data?.msg,
-//     mutate
-//   };
-// };
+  const { trigger, isMutating, data } = useSWRMutation(
+    url,
+    fetcher
+  );
 
-// export const useRegisterExit = (sendData: any, token: string) => {
-//   const { mutate } = useSWRConfig();
+  return {
+    trigger,
+    isMutating,
+    data
+  }
 
-//   return {
-//     data: data?.msg,
-//     mutate
-//   };
-// };
+}
 
-// export const useUser = (user = undefined) => {
-//       const { trigger } = useSWRMutation('login', fetcher.sendRequest);
-        
-//       return {
-//         user: data,
-//         isLoading: !data && !error,
-//         isError: error,
-//       };
-
-// }
