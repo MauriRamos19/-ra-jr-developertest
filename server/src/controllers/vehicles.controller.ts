@@ -27,7 +27,7 @@ const entryCase = async (req: Request, res: Response) => {
         },
       })
 
-      return res.status(200).send({ msg: 'Added vehicle' })
+      return res.status(200).send({ ok: true, msg: 'Added vehicle' })
     }
 
     if (vehicle?.state !== 'inside') {
@@ -49,12 +49,12 @@ const entryCase = async (req: Request, res: Response) => {
           },
         },
       })
-      return res.status(200).send({ msg: 'Updated vehicle state' })
+      return res.status(200).send({ ok:true, msg: 'Updated vehicle state' })
     } else {
-      return res.status(400).end()
+      return res.status(400).send({ok: false, msg: 'Vehice is already inside'})
     }
   } catch (error) {
-    return res.status(400).send({ msg: 'Something went wrong' })
+    return res.status(400).send({ok: false, msg: 'Something went wrong' })
   }
 }
 
@@ -105,7 +105,7 @@ const exitCase = async (req: Request, res: Response) => {
           },
         })
 
-        return res.status(200).send({ msg: 'Updated vehicle state' })
+        return res.status(200).send({ ok: true, msg: 'Updated vehicle state' })
       }
 
       await prisma.vehicle.update({
@@ -117,10 +117,12 @@ const exitCase = async (req: Request, res: Response) => {
         },
       })
     } else {
-      return res.status(400).end()
+      return res
+        .status(400)
+        .send({ ok: false, msg: 'Vehice is already outside' })
     } 
   } catch (error) {
-    return res.status(400).send({ msg: 'Something went wrong'})
+    return res.status(400).send({ ok: false, msg: 'Something went wrong'})
   }
       
 }
@@ -135,7 +137,7 @@ const getAllVehicles = async (req: Request, res: Response) => {
     }
   })
   
-  return res.status(200).send({vehicles});
+  return res.status(200).send({ok: true,vehicles});
 }
 
 const addVehicle = async (req: Request, res: Response) => {
@@ -160,10 +162,10 @@ const addVehicle = async (req: Request, res: Response) => {
           }
         })
 
-        return res.status(200).send({ msg: 'Vehicle updated successfully' })
+        return res.status(200).send({ ok: true, msg: 'Vehicle updated successfully' })
       }
 
-      return res.status(400).send({ msg: 'Vehicle already exits' })
+      return res.status(400).send({ ok: false, msg: 'Vehicle already exits' })
     }
     
     await prisma.vehicle.create({
@@ -173,9 +175,9 @@ const addVehicle = async (req: Request, res: Response) => {
       },
     })
 
-    return res.send({ msg: 'Vehicle added successfully' })
+    return res.send({ ok: true, msg: 'Vehicle added successfully' })
   } catch (error) {
-    return res.status(400).send({ msg: error })
+    return res.status(400).send({ ok:false, msg: error })
   }
 }
 
@@ -192,9 +194,9 @@ const editVehicle = async (req: Request, res: Response) => {
       },
     })
 
-    return res.send({ msg: 'Vehicle updated successfully' })
+    return res.send({ ok:true, msg: 'Vehicle updated successfully' })
   } catch (error) {
-    return res.status(400).send({ msg: error })
+    return res.status(400).send({ ok: false, msg: error })
   }
 }
 
@@ -207,7 +209,44 @@ const deleteVehicle = async (req: Request, res: Response) => {
       },
     })
 
-    return res.send({ msg: 'Vehicle deleted successfully' })
+    return res.send({ok: true, msg: 'Vehicle deleted successfully' })
+  } catch (error) {
+    return res.status(400).send({ ok: false, msg: 'Error' })
+  }
+}
+
+
+const getLogs = async (req: Request, res: Response) => {
+  try {
+    const logs = await prisma.inOutLogs.findMany({
+      select: {
+        vehicle: {
+          select: {
+            plate_number: true
+          }
+        },
+        entryTime: true,
+        exitTime: true
+      }
+    })
+
+    return res.send({logs})
+  } catch (error) {
+    return res.status(400).send({ msg: error })
+  }
+}
+
+
+const getVehicle = async (req: Request, res: Response) => {
+  const { id } = req.params
+  try {
+    const vehicle = await prisma.vehicle.findUnique({
+      where: {
+        id
+      }
+    })
+
+    return res.send({ vehicle: vehicle?.plate_number })
   } catch (error) {
     return res.status(400).send({ msg: error })
   }
@@ -220,4 +259,6 @@ export default {
   deleteVehicle,
   entryCase,
   exitCase,
+  getLogs,
+  getVehicle,
 }

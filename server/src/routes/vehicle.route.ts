@@ -10,6 +10,9 @@ router.route('/vehicle/register-exit').patch(vehiclesController.exitCase)
 router.get('/vehicle/all', vehiclesController.getAllVehicles)
 router.put('/vehicle', vehiclesController.addVehicle)
 
+router.get('/vehicles/logs', vehiclesController.getLogs)
+router.get('/vehicle/:id', vehiclesController.getVehicle)
+
 router.route('/vehicle/:id')
   .put(vehiclesController.editVehicle)
   .delete(vehiclesController.deleteVehicle)
